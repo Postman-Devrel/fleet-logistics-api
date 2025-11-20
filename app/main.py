@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import os
+import logging
 from app.database.config import engine, Base
 from app.routers import (
     organizations,
@@ -14,8 +16,8 @@ from app.routers import (
     gps
 )
 
-# Create database tables
-Base.metadata.create_all(bind=engine)
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="Fleet Logistics API",
@@ -24,6 +26,19 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc"
 )
+
+@app.on_event("startup")
+async def startup_event():
+    """Create database tables on startup"""
+    try:
+        logger.info("Creating database tables...")
+        Base.metadata.create_all(bind=engine)
+        logger.info("Database tables created successfully!")
+    except Exception as e:
+        logger.error(f"Failed to create database tables: {e}")
+        logger.error("Make sure DATABASE_URL environment variable is set correctly")
+        # Don't crash the app, just log the error
+        # This allows the app to start even if DB isn't ready yet
 
 # CORS configuration
 app.add_middleware(
@@ -57,4 +72,18 @@ def root():
 
 @app.get("/health")
 def health_check():
-    return {"status": "healthy"}
+    db_status = "unknown"
+    db_url = os.getenv("DATABASE_URL", "not_set")
+
+    try:
+        # Try to connect to database
+        with engine.connect() as conn:
+            db_status = "connected"
+    except Exception as e:
+        db_status = f"error: {str(e)}"
+
+    return {
+        "status": "healthy",
+        "database": db_status,
+        "database_url_configured": db_url != "not_set"
+    }
