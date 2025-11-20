@@ -13,7 +13,8 @@ from app.routers import (
     maintenance,
     fuel,
     incidents,
-    gps
+    gps,
+    seed
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -60,6 +61,7 @@ app.include_router(maintenance.router)
 app.include_router(fuel.router)
 app.include_router(incidents.router)
 app.include_router(gps.router)
+app.include_router(seed.router)
 
 @app.get("/")
 def root():
@@ -87,94 +89,3 @@ def health_check():
         "database": db_status,
         "database_url_configured": db_url != "not_set"
     }
-
-@app.post("/seed")
-def seed_database():
-    """Seed the database with fake data. Only run this once!"""
-    try:
-        from faker import Faker
-        from datetime import datetime, timedelta
-        import random
-        from app.database.config import SessionLocal
-        from app.models.models import Organization, Vehicle, Driver, Location, Route, Delivery, MaintenanceRecord, FuelLog, Incident, GPSTracking
-
-        # Initialize Faker
-        fake = Faker()
-        Faker.seed(42)
-        random.seed(42)
-
-        # Create database session
-        db = SessionLocal()
-
-        messages = []
-
-        try:
-            # Check if already seeded
-            org_count = db.query(Organization).count()
-            if org_count > 0:
-                return {
-                    "status": "warning",
-                    "message": f"Database already contains {org_count} organizations. Seeding skipped to avoid duplicates.",
-                    "suggestion": "Delete existing data first if you want to re-seed"
-                }
-
-            messages.append("Starting database seeding...")
-
-            # Seed organizations
-            messages.append("Creating 3 organizations...")
-            orgs = []
-            for name in ["Swift Logistics Inc", "National Transport Co", "Premier Freight Services"]:
-                org = Organization(
-                    name=name,
-                    email=fake.company_email(),
-                    phone=fake.phone_number(),
-                    address=fake.address().replace('\n', ', '),
-                    created_at=datetime.utcnow() - timedelta(days=random.randint(365, 1825))
-                )
-                orgs.append(org)
-                db.add(org)
-            db.commit()
-            messages.append(f"Created {len(orgs)} organizations")
-
-            # Seed vehicles (simplified for endpoint - just create a few for demo)
-            messages.append("Creating 50 vehicles...")
-            vehicles = []
-            for i in range(50):
-                vehicle = Vehicle(
-                    organization_id=random.choice(orgs).id,
-                    vin=''.join(random.choices('ABCDEFGHJKLMNPRSTUVWXYZ0123456789', k=17)),
-                    make=random.choice(["Ford", "Chevrolet", "Freightliner"]),
-                    model="Transit",
-                    year=random.randint(2015, 2024),
-                    license_plate=f"{fake.random_letter().upper()}{fake.random_letter().upper()}{random.randint(1000, 9999)}",
-                    vehicle_type=random.choice(["cargo_van", "box_truck", "semi_truck"]),
-                    capacity_kg=random.choice([1000, 5000, 10000]),
-                    status="active",
-                    current_mileage=random.uniform(10000, 200000)
-                )
-                vehicles.append(vehicle)
-                db.add(vehicle)
-            db.commit()
-            messages.append(f"Created {len(vehicles)} vehicles")
-
-            db.close()
-
-            return {
-                "status": "success",
-                "message": "Database seeded successfully with basic data!",
-                "details": messages,
-                "note": "Created organizations and vehicles. For full data set with 1000 deliveries, run scripts/seed_data.py directly."
-            }
-
-        except Exception as e:
-            db.rollback()
-            raise e
-        finally:
-            db.close()
-
-    except Exception as e:
-        logger.exception("Seeding error")
-        return {
-            "status": "error",
-            "message": str(e)
-        }
