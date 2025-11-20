@@ -87,3 +87,36 @@ def health_check():
         "database": db_status,
         "database_url_configured": db_url != "not_set"
     }
+
+@app.post("/seed")
+def seed_database():
+    """Seed the database with fake data. Only run this once!"""
+    try:
+        import subprocess
+        import sys
+
+        # Run the seed script
+        result = subprocess.run(
+            [sys.executable, "scripts/seed_data.py"],
+            capture_output=True,
+            text=True,
+            timeout=300
+        )
+
+        if result.returncode == 0:
+            return {
+                "status": "success",
+                "message": "Database seeded successfully!",
+                "output": result.stdout
+            }
+        else:
+            return {
+                "status": "error",
+                "message": "Seeding failed",
+                "error": result.stderr
+            }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": str(e)
+        }
