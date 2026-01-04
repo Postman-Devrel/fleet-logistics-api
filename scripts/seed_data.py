@@ -17,12 +17,12 @@ random.seed(42)
 
 # Configuration
 NUM_ORGANIZATIONS = 3
-NUM_VEHICLES = 50
-NUM_DRIVERS = 60
+NUM_VEHICLES = 200
+NUM_DRIVERS = 150
 NUM_LOCATIONS = 100
 NUM_ROUTES = 400
-NUM_DELIVERIES = 1000
-HISTORY_MONTHS = 6
+NUM_DELIVERIES = 10000
+HISTORY_MONTHS = 12
 
 # Vehicle data
 VEHICLE_MAKES = ["Ford", "Chevrolet", "Freightliner", "Peterbilt", "Kenworth", "Volvo", "Mercedes-Benz", "RAM"]

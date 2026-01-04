@@ -2,7 +2,7 @@
 
 ## Base URL
 - Local: `http://localhost:8000`
-- Railway: `https://your-app.railway.app`
+- Railway: `web-production-ac9db.up.railway.app`
 
 ## Common Query Parameters
 
