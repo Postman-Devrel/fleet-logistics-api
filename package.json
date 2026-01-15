@@ -1,0 +1,25 @@
+{
+  "name": "fleet-logistics-api",
+  "version": "1.0.0",
+  "description": "FastAPI-based fleet management and logistics tracking REST API",
+  "scripts": {
+    "dev": "uvicorn app.main:app --reload",
+    "start": "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}",
+    "seed": "python scripts/seed_data.py",
+    "install:py": "pip install -r requirements.txt",
+    "setup": "python3 -m venv venv && . venv/bin/activate && pip install -r requirements.txt"
+  },
+  "keywords": [
+    "fleet",
+    "logistics",
+    "api",
+    "fastapi",
+    "rest"
+  ],
+  "author": "",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": ""
+  }
+}
