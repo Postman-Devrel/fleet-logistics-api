@@ -1,0 +1,48 @@
+---
+description: "Sync API changes with Postman collections"
+globs: ["app/routers/**/*.py", "openapi.yaml"]
+alwaysApply: false
+---
+
+# Postman Sync Rules
+
+## Workspace
+- **Workspace**: <insert workspace name>
+- **Workspace ID**: <insert workspace id>
+
+## When to Sync
+Update Postman when:
+1. Adding a new endpoint
+2. Changing request/response schemas
+3. Adding or modifying query parameters
+4. Updating error responses
+
+## Sync Workflow
+
+### Adding a New Endpoint
+1. Implement the endpoint in `app/routers/`
+2. Add schema to `app/models/schemas.py` if needed
+3. Use the Postman MCP server to add the request to the collection
+4. Include example request body and response
+
+### Updating openapi.yaml
+If modifying `openapi.yaml` directly:
+1. Use MCP to sync the spec to Postman
+2. Regenerate the collection from the updated spec
+
+## Collection Standards
+- Group requests by resource (Vehicles, Drivers, Deliveries, etc.)
+- Include description for every request
+- Add example responses for success and error cases
+- Use environment variables for `{{base_url}}` and `{{api_key}}`
+
+## Example MCP Prompts
+
+**Add endpoint to collection:**
+> "Using the Postman MCP server, add a new GET /vehicles/{{vehicle_id}}/maintenance endpoint to the Fleet Logistics API collection. Include query params for date_from and date_to."
+
+**Sync from code:**
+> "I added a new /drivers/{{driver_id}}/incidents endpoint. Update the Postman collection in workspace 29b66d3d-be33-4dab-b740-2b00f7b5d0b2 with the request and example response."
+
+**Update spec:**
+> "Sync the openapi.yaml file to the Fleet Logistics API spec in Postman."
